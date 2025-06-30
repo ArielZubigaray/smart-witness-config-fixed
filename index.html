@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smart Witness - Configuración BLE (FIXED)</title>
+    <title>Smart Witness - Configuración BLE</title>
     <style>
         * {
             margin: 0;
@@ -15,7 +15,6 @@
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             min-height: 100vh;
             padding: 15px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         }
 
         .container {
@@ -23,7 +22,7 @@
             margin: 0 auto;
             background: white;
             border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
             overflow: hidden;
         }
 
@@ -54,38 +53,6 @@
 
         .content {
             padding: 20px;
-        }
-
-        .progress-bar {
-            display: flex;
-            margin-bottom: 20px;
-            background: #f8f9fa;
-            border-radius: 8px;
-            padding: 10px;
-        }
-
-        .progress-step {
-            flex: 1;
-            text-align: center;
-            font-size: 0.8em;
-            padding: 5px;
-            border-radius: 5px;
-            margin: 0 2px;
-        }
-
-        .progress-step.completed {
-            background: #28a745;
-            color: white;
-        }
-
-        .progress-step.active {
-            background: #007bff;
-            color: white;
-        }
-
-        .progress-step.pending {
-            background: #e9ecef;
-            color: #6c757d;
         }
 
         .form-group {
@@ -136,17 +103,11 @@
         }
 
         .btn-success {
-            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);
             color: white;
         }
 
-        .btn-telegram {
-            background: linear-gradient(135deg, #0088cc 0%, #006bb3 100%);
-            color: white;
-            font-size: 16px;
-        }
-
-        .btn:hover:not(:disabled) {
+        .btn-primary:hover:not(:disabled) {
             transform: translateY(-1px);
             box-shadow: 0 3px 10px rgba(0,123,255,0.3);
         }
@@ -158,42 +119,6 @@
 
         .hidden {
             display: none;
-        }
-
-        .input-validation {
-            position: relative;
-        }
-
-        .input-validation .validation-icon {
-            position: absolute;
-            right: 10px;
-            top: 30px;
-            font-size: 1em;
-        }
-
-        .input-validation.valid .validation-icon {
-            color: #28a745;
-        }
-
-        .input-validation.invalid .validation-icon {
-            color: #dc3545;
-        }
-
-        .validation-message {
-            margin-top: 3px;
-            font-size: 0.75em;
-            padding: 3px 8px;
-            border-radius: 4px;
-        }
-
-        .validation-message.valid {
-            background: #d4edda;
-            color: #155724;
-        }
-
-        .validation-message.invalid {
-            background: #f8d7da;
-            color: #721c24;
         }
 
         .status {
@@ -221,83 +146,40 @@
         }
 
         .telegram-section {
+            margin-top: 20px;
+            padding: 15px;
             background: #f8f9fa;
             border-radius: 8px;
-            padding: 15px;
-            margin-top: 15px;
             text-align: center;
-        }
-
-        .telegram-section h3 {
-            color: #0088cc;
-            margin-bottom: 10px;
-        }
-
-        .telegram-section p {
-            color: #666;
-            font-size: 0.9em;
-            margin-bottom: 15px;
-            line-height: 1.4;
         }
 
         .device-id-display {
-            background: #e9ecef;
+            margin: 10px 0;
             padding: 8px;
-            border-radius: 5px;
+            background: #e9ecef;
+            border-radius: 6px;
             font-family: monospace;
             font-size: 0.8em;
-            margin: 10px 0;
             word-break: break-all;
-        }
-
-        .success-message {
-            text-align: center;
-            padding: 15px;
-            background: #d4edda;
-            color: #155724;
-            border-radius: 8px;
-            margin-top: 10px;
-            font-size: 0.85em;
-        }
-
-        .error-message {
-            text-align: center;
-            padding: 15px;
-            background: #f8d7da;
-            color: #721c24;
-            border-radius: 8px;
-            margin-top: 10px;
-            font-size: 0.85em;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header" id="header">
-            <h1>📷 Smart Witness (FIXED)</h1>
+            <h1>📷 Smart Witness</h1>
             <div class="warning" id="warning-text"></div>
         </div>
 
         <div class="content">
-            <!-- Progress Bar -->
-            <div class="progress-bar">
-                <div class="progress-step completed" id="step1">1. BLE</div>
-                <div class="progress-step pending" id="step2">2. WiFi</div>
-                <div class="progress-step pending" id="step3">3. Telegram</div>
-                <div class="progress-step pending" id="step4">4. Listo</div>
-            </div>
-
             <div id="ble-status" class="status checking">
                 🔍 Verificando compatibilidad...
             </div>
 
-            <!-- Step 1: BLE Configuration Form -->
             <div id="config-form">
-                <div class="form-group input-validation" id="telegram-user-group">
+                <div class="form-group">
                     <label for="telegramUser">Usuario de Telegram <span class="required">*</span></label>
                     <input type="text" id="telegramUser" placeholder="@tu_usuario" maxlength="33" required>
-                    <div class="validation-icon"></div>
-                    <div class="validation-message"></div>
                 </div>
 
                 <div class="form-group">
@@ -319,39 +201,22 @@
                 </button>
             </div>
 
-            <!-- Step 2: Telegram Configuration -->
             <div id="telegram-section" class="telegram-section hidden">
                 <h3>🚀 Paso 2: Configurar Telegram</h3>
                 <p>Tu dispositivo Smart Witness está listo. Ahora necesitas configurar Telegram para recibir las fotos.</p>
                 
-                <div class="device-id-display" id="device-id-display">
-                    Device ID: <span id="device-id-text">...</span>
+                <div id="device-id-section" class="hidden">
+                    <p><strong>Device ID:</strong></p>
+                    <div id="device-id-display" class="device-id-display">Esperando Device ID...</div>
                 </div>
-                
-                <p><strong>Instrucciones:</strong></p>
-                <p>1. Haz clic en el botón azul de abajo<br>
-                   2. Se abrirá Telegram automáticamente<br>
-                   3. Envía el mensaje que aparece<br>
-                   4. ¡Tu dispositivo estará configurado!</p>
 
-                <button id="open-telegram-btn" class="btn btn-telegram">
+                <button id="telegram-btn" class="btn btn-success" disabled>
                     📱 Abrir Telegram y Completar Configuración
                 </button>
-
-                <div id="waiting-telegram" class="status checking hidden">
-                    ⏰ Esperando configuración de Telegram...
-                </div>
-            </div>
-
-            <!-- Step 3: Success -->
-            <div id="success-screen" class="success-message hidden">
-                🎉 ¡Configuración completada exitosamente!<br>
-                Tu Smart Witness está listo para usar.
-            </div>
-
-            <!-- Error messages -->
-            <div id="error-screen" class="error-message hidden">
-                ❌ <span id="error-text">Error en la configuración</span>
+                
+                <p style="margin-top: 10px; font-size: 0.85em; color: #666;">
+                    Haz clic en el botón azul de abajo. Se abrirá Telegram automáticamente con tu dispositivo configurado.
+                </p>
             </div>
         </div>
     </div>
@@ -363,140 +228,12 @@
         let statusCharacteristic = null;
         let deviceIdCharacteristic = null;
         let isConnected = false;
-        let currentDeviceId = '';
-        let telegramUser = '';
+        let currentDeviceId = null;
 
         const SERVICE_UUID = '12345678-1234-1234-1234-123456789abc';
         const CHAR_CONFIG_UUID = '87654321-4321-4321-4321-cba987654321';
         const CHAR_STATUS_UUID = '11111111-2222-3333-4444-555555555555';
         const CHAR_DEVICE_ID_UUID = 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee';
-
-        function updateProgressStep(step, status) {
-            const stepElement = document.getElementById(`step${step}`);
-            stepElement.classList.remove('pending', 'active', 'completed');
-            stepElement.classList.add(status);
-        }
-
-        function normalizeTelegramUsername(username) {
-            username = username.trim().toLowerCase();
-            if (!username.startsWith('@')) {
-                username = '@' + username;
-            }
-            return username;
-        }
-
-        function validateTelegramUsername(username) {
-            username = normalizeTelegramUsername(username);
-            
-            if (username.length < 2 || username.length > 33) {
-                return { valid: false, message: 'Entre 1 y 32 caracteres' };
-            }
-            
-            const usernameOnly = username.substring(1);
-            const validPattern = /^[a-z0-9_]+$/;
-            if (!validPattern.test(usernameOnly)) {
-                return { valid: false, message: 'Solo letras, números y _' };
-            }
-            
-            if (usernameOnly.startsWith('_') || usernameOnly.endsWith('_')) {
-                return { valid: false, message: 'No puede empezar/terminar con _' };
-            }
-            
-            if (usernameOnly.includes('__')) {
-                return { valid: false, message: 'No doble _ consecutivo' };
-            }
-            
-            return { valid: true, message: 'Usuario válido', normalized: username };
-        }
-
-        function updateTelegramUserValidation() {
-            const input = document.getElementById('telegramUser');
-            const group = document.getElementById('telegram-user-group');
-            const icon = group.querySelector('.validation-icon');
-            const message = group.querySelector('.validation-message');
-            
-            const username = input.value.trim();
-            
-            if (username.length === 0) {
-                group.classList.remove('valid', 'invalid');
-                icon.textContent = '';
-                message.textContent = '';
-                message.classList.remove('valid', 'invalid');
-                updateButtonState();
-                return;
-            }
-            
-            const validation = validateTelegramUsername(username);
-            
-            if (validation.valid) {
-                group.classList.remove('invalid');
-                group.classList.add('valid');
-                icon.textContent = '✅';
-                message.textContent = validation.message;
-                message.classList.remove('invalid');
-                message.classList.add('valid');
-                input.value = validation.normalized;
-            } else {
-                group.classList.remove('valid');
-                group.classList.add('invalid');
-                icon.textContent = '❌';
-                message.textContent = validation.message;
-                message.classList.remove('valid');
-                message.classList.add('invalid');
-            }
-            
-            updateButtonState();
-        }
-
-        function showTelegramSection(deviceId) {
-            // Hide config form
-            document.getElementById('config-form').classList.add('hidden');
-            
-            // Show telegram section
-            document.getElementById('telegram-section').classList.remove('hidden');
-            document.getElementById('device-id-text').textContent = deviceId;
-            
-            // Update progress
-            updateProgressStep(2, 'completed');
-            updateProgressStep(3, 'active');
-            
-            // Store values
-            currentDeviceId = deviceId;
-            telegramUser = document.getElementById('telegramUser').value.trim();
-            
-            // Setup telegram button
-            const telegramBtn = document.getElementById('open-telegram-btn');
-            const botName = 'SmartWitnessBot'; // Should match ESP32 bot name
-            const telegramUrl = `https://t.me/${botName}?start=${deviceId}`;
-            
-            telegramBtn.onclick = function() {
-                window.open(telegramUrl, '_blank');
-                
-                // Show waiting status
-                document.getElementById('waiting-telegram').classList.remove('hidden');
-                telegramBtn.textContent = '⏰ Configuración enviada - Verificando...';
-                telegramBtn.disabled = true;
-            };
-        }
-
-        function showSuccess() {
-            // Hide telegram section
-            document.getElementById('telegram-section').classList.add('hidden');
-            
-            // Show success
-            document.getElementById('success-screen').classList.remove('hidden');
-            
-            // Update progress
-            updateProgressStep(3, 'completed');
-            updateProgressStep(4, 'completed');
-            
-            updateStatus('🎉 ¡Configuración completada!', 'connected');
-        }
-
-        function showError(message) {
-            document.getElementById('error-text').textContent = message;
-            document.getElementById('error-screen').classList.remove('hidden');
-        }
 
         document.addEventListener('DOMContentLoaded', function() {
             const header = document.getElementById('header');
@@ -512,14 +249,10 @@
             
             header.classList.add('compatible');
             updateStatus('✅ Navegador compatible', 'connected');
-            updateProgressStep(1, 'active');
-            
-            const telegramUserInput = document.getElementById('telegramUser');
-            telegramUserInput.addEventListener('input', updateTelegramUserValidation);
-            telegramUserInput.addEventListener('blur', updateTelegramUserValidation);
             
             document.getElementById('connect-btn').addEventListener('click', connectToDevice);
             document.getElementById('send-config-btn').addEventListener('click', sendConfiguration);
+            document.getElementById('telegram-btn').addEventListener('click', openTelegram);
             
             const requiredFields = ['telegramUser', 'ssid', 'password'];
             requiredFields.forEach(fieldId => {
@@ -543,12 +276,7 @@
             const ssid = document.getElementById('ssid').value.trim();
             const password = document.getElementById('password').value.trim();
             
-            const telegramValidation = validateTelegramUsername(telegramUser);
-            
-            const hasRequiredFields = telegramUser.length > 0 && 
-                                     telegramValidation.valid &&
-                                     ssid.length > 0 && 
-                                     password.length > 0;
+            const hasRequiredFields = telegramUser.length > 0 && ssid.length > 0 && password.length > 0;
             
             connectBtn.disabled = !hasRequiredFields;
             sendConfigBtn.disabled = !hasRequiredFields || !isConnected;
@@ -571,9 +299,17 @@
                 const service = await bleServer.getPrimaryService(SERVICE_UUID);
                 configCharacteristic = await service.getCharacteristic(CHAR_CONFIG_UUID);
                 statusCharacteristic = await service.getCharacteristic(CHAR_STATUS_UUID);
-                deviceIdCharacteristic = await service.getCharacteristic(CHAR_DEVICE_ID_UUID);
                 
-                // Setup notifications
+                // 🆕 FIXED: Subscribe to Device ID characteristic
+                try {
+                    deviceIdCharacteristic = await service.getCharacteristic(CHAR_DEVICE_ID_UUID);
+                    await deviceIdCharacteristic.startNotifications();
+                    deviceIdCharacteristic.addEventListener('characteristicvaluechanged', onDeviceIdChanged);
+                    console.log('✅ Device ID characteristic subscribed');
+                } catch (error) {
+                    console.log('⚠️ Device ID characteristic not available:', error);
+                }
+                
                 try {
                     await statusCharacteristic.startNotifications();
                     statusCharacteristic.addEventListener('characteristicvaluechanged', onStatusChanged);
@@ -581,17 +317,8 @@
                     console.log('⚠️ Status notifications not available');
                 }
 
-                try {
-                    await deviceIdCharacteristic.startNotifications();
-                    deviceIdCharacteristic.addEventListener('characteristicvaluechanged', onDeviceIdChanged);
-                } catch (error) {
-                    console.log('⚠️ Device ID notifications not available');
-                }
-
                 isConnected = true;
                 updateStatus(`✅ Conectado a ${bleDevice.name}`, 'connected');
-                updateProgressStep(1, 'completed');
-                updateProgressStep(2, 'active');
                 
                 document.getElementById('connect-btn').classList.add('hidden');
                 document.getElementById('send-config-btn').classList.remove('hidden');
@@ -600,7 +327,6 @@
             } catch (error) {
                 console.error('❌ Connection error:', error);
                 updateStatus('❌ Error de conexión', 'error');
-                showError('Error de conexión BLE: ' + error.message);
             }
         }
 
@@ -629,38 +355,45 @@
             } catch (error) {
                 console.error('❌ Send config error:', error);
                 updateStatus('❌ Error enviando configuración', 'error');
-                showError('Error enviando configuración: ' + error.message);
             }
+        }
+
+        // 🆕 FIXED: Handle Device ID updates
+        function onDeviceIdChanged(event) {
+            const decoder = new TextDecoder();
+            const deviceId = decoder.decode(event.target.value);
+            
+            console.log('📱 Device ID received:', deviceId);
+            currentDeviceId = deviceId;
+            
+            // Show the Device ID to user
+            document.getElementById('device-id-display').textContent = deviceId;
+            document.getElementById('device-id-section').classList.remove('hidden');
+            
+            // Enable the Telegram button
+            const telegramBtn = document.getElementById('telegram-btn');
+            telegramBtn.disabled = false;
+            telegramBtn.textContent = '📱 Abrir Telegram y Completar Configuración';
+            
+            console.log('✅ Telegram button enabled with Device ID:', deviceId);
         }
 
         function onDisconnected() {
             updateStatus('📱 Dispositivo desconectado', 'error');
             isConnected = false;
             bleDevice = null;
+            currentDeviceId = null;
             document.getElementById('connect-btn').classList.remove('hidden');
             document.getElementById('send-config-btn').classList.add('hidden');
+            document.getElementById('telegram-section').classList.add('hidden');
             updateButtonState();
-        }
-
-        function onDeviceIdChanged(event) {
-            const decoder = new TextDecoder();
-            const deviceId = decoder.decode(event.target.value);
-            
-            console.log('📱 Device ID received:', deviceId);
-            
-            if (deviceId && deviceId.length > 0) {
-                // Show telegram configuration section
-                setTimeout(() => {
-                    showTelegramSection(deviceId);
-                }, 1000);
-            }
         }
 
         function onStatusChanged(event) {
             const decoder = new TextDecoder();
             const status = decoder.decode(event.target.value);
-            
-            console.log('📊 Status:', status);
+
+            console.log('📊 Status update:', status);
 
             switch (status) {
                 case 'processing_config':
@@ -677,32 +410,68 @@
                     break;
                 case 'device_id_generated':
                     updateStatus('📱 Device ID generado', 'connected');
+                    // Show Telegram section when device ID is ready
+                    document.getElementById('telegram-section').classList.remove('hidden');
                     break;
                 case 'auto_response_started':
-                    updateStatus('🤖 Esperando Telegram...', 'checking');
+                    updateStatus('🤖 Listo para Telegram', 'connected');
                     break;
                 case 'telegram_configured':
                     updateStatus('✅ Telegram configurado', 'connected');
-                    setTimeout(showSuccess, 1000);
                     break;
                 case 'configuration_complete':
-                    showSuccess();
+                    updateStatus('🎉 ¡Completado!', 'connected');
+                    showSuccessMessage();
                     break;
                 case 'error_invalid_telegram_user':
                     updateStatus('❌ Usuario Telegram inválido', 'error');
-                    showError('Usuario de Telegram inválido');
                     break;
                 case 'error_wifi_failed':
                     updateStatus('❌ Error de WiFi', 'error');
-                    showError('No se pudo conectar a WiFi. Verifica las credenciales.');
-                    break;
-                case 'auto_response_timeout':
-                    updateStatus('⏰ Timeout de Telegram', 'error');
-                    showError('Tiempo agotado esperando configuración de Telegram');
                     break;
                 default:
-                    updateStatus(status, 'checking');
+                    if (status.startsWith('error_')) {
+                        updateStatus('❌ ' + status.replace('error_', '').replace('_', ' '), 'error');
+                    } else {
+                        updateStatus(status, 'checking');
+                    }
             }
+        }
+
+        // 🆕 FIXED: Open Telegram with Device ID
+        function openTelegram() {
+            if (!currentDeviceId) {
+                alert('❌ Device ID no disponible. Intenta conectar de nuevo.');
+                return;
+            }
+            
+            const telegramUrl = `https://t.me/SmartWitnessBot?start=${currentDeviceId}`;
+            console.log('🔗 Opening Telegram with URL:', telegramUrl);
+            
+            // Update button to show it's working
+            const telegramBtn = document.getElementById('telegram-btn');
+            telegramBtn.textContent = '📱 Abriendo Telegram...';
+            telegramBtn.disabled = true;
+            
+            // Open Telegram
+            window.open(telegramUrl, '_blank');
+            
+            // Reset button after a moment
+            setTimeout(() => {
+                telegramBtn.textContent = '📱 Abrir Telegram y Completar Configuración';
+                telegramBtn.disabled = false;
+            }, 2000);
+        }
+
+        function showSuccessMessage() {
+            document.getElementById('config-form').classList.add('hidden');
+            document.getElementById('telegram-section').innerHTML = `
+                <h3>🎉 ¡Configuración Completada!</h3>
+                <p>Tu Smart Witness está configurado y listo para usar.</p>
+                <p style="margin-top: 15px; color: #28a745; font-weight: bold;">
+                    ✅ Dispositivo operativo
+                </p>
+            `;
         }
     </script>
 </body>
