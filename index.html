@@ -339,15 +339,15 @@
                     ⚙️ Configurar Dispositivo
                 </button>
 
-                <!-- Telegram Section -->
-                <div id="telegram-section" class="telegram-section hidden">
+                <!-- Success Section (replaces telegram section) -->
+                <div id="success-section" class="telegram-section hidden">
                     <div class="telegram-info">
-                        📱 <strong>Siguiente paso:</strong> El dispositivo se reiniciará automáticamente. 
-                        Usa el botón de abajo para abrir Telegram y envía tu PIN.
+                        🎉 <strong>¡Configuración enviada!</strong><br>
+                        📱 Telegram se abrió automáticamente<br>
+                        🔄 El dispositivo se está reiniciando<br><br>
+                        <strong>📋 Siguiente paso:</strong><br>
+                        Envía tu PIN <strong id="final-pin"></strong> en Telegram para completar la configuración
                     </div>
-                    <button id="telegram-btn" class="btn btn-primary">
-                        💬 Abrir Telegram
-                    </button>
                 </div>
 
                 <!-- Debug Section -->
@@ -388,13 +388,11 @@
         const pinValue = document.getElementById('pin-value');
         const pinInstruction = document.getElementById('pin-instruction');
         const configureBtn = document.getElementById('configure-btn');
-        const telegramSection = document.getElementById('telegram-section');
-        const telegramBtn = document.getElementById('telegram-btn');
+        const successSection = document.getElementById('success-section');
 
         // Event Listeners
         connectBtn.addEventListener('click', connectToDevice);
         configureBtn.addEventListener('click', configureDevice);
-        telegramBtn.addEventListener('click', openTelegram);
         ssidInput.addEventListener('input', validateForm);
         passwordInput.addEventListener('input', validateForm);
 
@@ -615,8 +613,32 @@
                 // Configuration sent successfully
                 configureBtn.innerHTML = '✅ Configuración Enviada';
                 
-                // Show telegram section after a short delay
-                setTimeout(showTelegramSection, 1500);
+                // Wait a moment for ESP32 to process
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                // Send restart command to ESP32
+                if (commandCharacteristic) {
+                    try {
+                        await commandCharacteristic.writeValue(encoder.encode('telegram_opened'));
+                        console.log('Restart command sent to ESP32');
+                    } catch (error) {
+                        console.log('Could not send restart command:', error);
+                    }
+                }
+
+                // Automatically open Telegram
+                const telegramUrl = 'https://t.me/SmartWitnessBot';
+                const telegramWindow = window.open(telegramUrl, '_blank');
+                
+                if (!telegramWindow) {
+                    // Popup blocked, show manual link
+                    updateConnectionStatus('🚨 Popup bloqueado. Abre manualmente: https://t.me/SmartWitnessBot', 'connecting');
+                } else {
+                    updateConnectionStatus('📱 Telegram abierto automáticamente', 'connected');
+                }
+                
+                // Show success section with final instructions
+                showSuccessSection();
 
             } catch (error) {
                 console.error('Configuration error:', error);
@@ -667,8 +689,8 @@
             isConnected = false;
             bleDevice = null;
             
-            if (telegramSection.classList.contains('hidden')) {
-                // Only show reconnect option if we haven't reached telegram phase
+            if (successSection.classList.contains('hidden')) {
+                // Only show reconnect option if we haven't reached success phase
                 updateConnectionStatus('📱 Dispositivo desconectado', 'disconnected');
                 connectBtn.style.display = 'block';
                 connectBtn.innerHTML = '🔗 Reconectar Dispositivo';
