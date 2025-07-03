@@ -249,6 +249,37 @@
             display: none;
         }
 
+        .debug-section {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            font-size: 0.8em;
+            color: #666;
+        }
+
+        .debug-btn {
+            margin-top: 5px;
+            padding: 5px 10px;
+            font-size: 0.75em;
+            border: none;
+            background: #6c757d;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .manual-pin-btn {
+            padding: 5px 10px;
+            margin-top: 5px;
+            border: none;
+            background: #667eea;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.8em;
+        }
+
         @media (max-width: 480px) {
             .container {
                 margin: 10px;
@@ -300,7 +331,7 @@
                 <div id="pin-display" class="pin-display">
                     <div class="pin-label">PIN del Dispositivo</div>
                     <div id="pin-value" class="pin-value">---</div>
-                    <div class="pin-instruction">Anota este número para usarlo en Telegram</div>
+                    <div id="pin-instruction" class="pin-instruction">Anota este número para usarlo en Telegram</div>
                 </div>
 
                 <!-- Configure Button -->
@@ -317,6 +348,13 @@
                     <button id="telegram-btn" class="btn btn-primary">
                         💬 Abrir Telegram
                     </button>
+                </div>
+
+                <!-- Debug Section -->
+                <div class="debug-section">
+                    <strong>🔧 Debug Info:</strong><br>
+                    <div id="debug-info">Conecta el dispositivo para ver información de debug</div>
+                    <button class="debug-btn" onclick="showDebugInfo()">Actualizar Debug</button>
                 </div>
             </div>
         </div>
@@ -348,6 +386,7 @@
         const passwordInput = document.getElementById('password');
         const pinDisplay = document.getElementById('pin-display');
         const pinValue = document.getElementById('pin-value');
+        const pinInstruction = document.getElementById('pin-instruction');
         const configureBtn = document.getElementById('configure-btn');
         const telegramSection = document.getElementById('telegram-section');
         const telegramBtn = document.getElementById('telegram-btn');
@@ -408,8 +447,23 @@
                     pinCharacteristic = await service.getCharacteristic(CHAR_PIN_UUID);
                     await pinCharacteristic.startNotifications();
                     pinCharacteristic.addEventListener('characteristicvaluechanged', onPinReceived);
+                    console.log('PIN notifications set up successfully');
+                    
+                    // Request current PIN value (in case it was already set)
+                    try {
+                        const pinData = await pinCharacteristic.readValue();
+                        if (pinData.byteLength > 0) {
+                            const decoder = new TextDecoder();
+                            const existingPin = decoder.decode(pinData);
+                            if (existingPin && existingPin !== '---' && existingPin.length === 3) {
+                                onPinReceived({ target: { value: pinData } });
+                            }
+                        }
+                    } catch (readError) {
+                        console.log('Could not read existing PIN value');
+                    }
                 } catch (error) {
-                    console.log('PIN notifications not available');
+                    console.log('PIN notifications not available:', error);
                 }
 
                 try {
@@ -426,7 +480,14 @@
                 connectBtn.style.display = 'none';
                 enableForm();
 
-                // Request PIN from device (it should send automatically)
+                // Set up PIN request timeout (if PIN not received in 10 seconds)
+                setTimeout(() => {
+                    if (!devicePin || devicePin === '---') {
+                        console.log('PIN not received automatically, showing manual option');
+                        showManualPinOption();
+                    }
+                }, 10000);
+
                 console.log('Connected successfully, waiting for PIN...');
 
             } catch (error) {
@@ -446,22 +507,57 @@
             setTimeout(() => ssidInput.focus(), 300);
         }
 
+        function showManualPinOption() {
+            pinInstruction.innerHTML = 
+                '⚠️ PIN no recibido automáticamente<br><button class="manual-pin-btn" onclick="requestPinManually()">🔄 Solicitar PIN</button>';
+        }
+
+        function requestPinManually() {
+            if (pinCharacteristic) {
+                console.log('Manually requesting PIN...');
+                pinCharacteristic.readValue().then(data => {
+                    if (data.byteLength > 0) {
+                        onPinReceived({ target: { value: data } });
+                    }
+                }).catch(error => {
+                    console.log('Manual PIN request failed:', error);
+                    pinInstruction.innerHTML = '❌ No se pudo obtener PIN. Verifica la conexión.';
+                });
+            }
+        }
+
         function onPinReceived(event) {
             const decoder = new TextDecoder();
-            devicePin = decoder.decode(event.target.value);
+            const receivedPin = decoder.decode(event.target.value);
             
-            console.log('PIN received:', devicePin);
+            console.log('PIN received event:', receivedPin, 'length:', receivedPin.length);
             
-            if (devicePin && devicePin !== '---') {
+            // Validate PIN format (should be 3 digits)
+            if (receivedPin && receivedPin.length === 3 && /^\d{3}$/.test(receivedPin)) {
+                devicePin = receivedPin;
+                
+                console.log('Valid PIN received:', devicePin);
+                
                 pinValue.textContent = devicePin;
                 pinDisplay.classList.add('enabled');
                 pinDisplay.classList.add('success-animation');
                 
                 // Update instruction
-                pinDisplay.querySelector('.pin-instruction').textContent = 
-                    `✅ PIN recibido: ${devicePin} - Anótalo para Telegram`;
+                pinInstruction.textContent = `✅ PIN recibido: ${devicePin} - Anótalo para Telegram`;
                 
                 validateForm();
+                
+                // Remove any manual request option
+                const manualBtn = pinDisplay.querySelector('.manual-pin-btn');
+                if (manualBtn) {
+                    manualBtn.remove();
+                }
+                
+            } else {
+                console.log('Invalid PIN received:', receivedPin);
+                if (receivedPin && receivedPin !== '---') {
+                    pinInstruction.textContent = `⚠️ PIN inválido recibido: "${receivedPin}" (esperado: 3 dígitos)`;
+                }
             }
         }
 
@@ -484,7 +580,9 @@
         function validateForm() {
             const hasSSID = ssidInput.value.trim().length > 0;
             const hasPassword = passwordInput.value.trim().length > 0;
-            const hasPin = devicePin && devicePin !== '---';
+            const hasPin = devicePin && devicePin !== '---' && devicePin.length === 3;
+            
+            console.log('Form validation:', { hasSSID, hasPassword, hasPin, devicePin });
             
             configureBtn.disabled = !(hasSSID && hasPassword && hasPin);
             
@@ -588,6 +686,23 @@
                 devicePin = '';
             }
         }
+
+        // Debug function
+        function showDebugInfo() {
+            const debugElement = document.getElementById('debug-info');
+            debugElement.innerHTML = `
+                Conectado: ${isConnected}<br>
+                PIN: "${devicePin}" (length: ${devicePin ? devicePin.length : 0})<br>
+                SSID: "${ssidInput.value}"<br>
+                Password: "${passwordInput.value ? '***' : ''}"<br>
+                BLE Device: ${bleDevice ? bleDevice.name : 'null'}<br>
+                PIN Char: ${pinCharacteristic ? 'available' : 'null'}
+            `;
+        }
+
+        // Make functions globally available
+        window.showDebugInfo = showDebugInfo;
+        window.requestPinManually = requestPinManually;
     </script>
 </body>
 </html>
