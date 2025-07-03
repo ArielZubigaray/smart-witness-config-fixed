@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smart Witness - Configuración WiFi</title>
+    <title>Smart Witness - Configuración</title>
     <style>
         * {
             margin: 0;
@@ -14,32 +14,28 @@
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             min-height: 100vh;
-            padding: 15px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .container {
-            max-width: 400px;
-            margin: 0 auto;
+            max-width: 420px;
+            width: 100%;
             background: white;
-            border-radius: 15px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
             overflow: hidden;
+            transition: all 0.3s ease;
         }
 
         .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             padding: 25px;
             text-align: center;
-            transition: background-color 0.3s ease;
-        }
-
-        .header.compatible {
-            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-        }
-
-        .header.incompatible {
-            background: linear-gradient(135deg, #dc3545 0%, #e74c3c 100%);
         }
 
         .header h1 {
@@ -51,33 +47,92 @@
         .header .subtitle {
             font-size: 0.9em;
             opacity: 0.9;
-            font-weight: 300;
         }
 
         .content {
-            padding: 25px;
+            padding: 30px;
         }
 
-        .info-box {
-            background: #f8f9fa;
-            border-left: 4px solid #28a745;
+        .connection-section {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .connection-status {
             padding: 15px;
+            border-radius: 12px;
             margin-bottom: 20px;
-            border-radius: 0 8px 8px 0;
+            font-weight: 500;
+            transition: all 0.3s ease;
         }
 
-        .info-box h3 {
+        .connection-status.disconnected {
+            background: #f8f9fa;
+            color: #6c757d;
+            border: 2px dashed #dee2e6;
+        }
+
+        .connection-status.connected {
+            background: #d4edda;
             color: #155724;
-            font-size: 0.9em;
-            margin-bottom: 8px;
+            border: 2px solid #c3e6cb;
+        }
+
+        .connection-status.connecting {
+            background: #fff3cd;
+            color: #856404;
+            border: 2px solid #ffeaa7;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
             font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 15px;
+            position: relative;
+            overflow: hidden;
         }
 
-        .info-box p {
-            color: #155724;
-            font-size: 0.8em;
-            line-height: 1.4;
-            margin: 0;
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #56ab2f 0%, #a8e6cf 100%);
+            color: white;
+        }
+
+        .btn-success:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(86, 171, 47, 0.4);
+        }
+
+        .form-section {
+            opacity: 0.4;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+        }
+
+        .form-section.enabled {
+            opacity: 1;
+            pointer-events: auto;
         }
 
         .form-group {
@@ -87,363 +142,371 @@
         .form-group label {
             display: block;
             margin-bottom: 8px;
-            font-weight: 500;
+            font-weight: 600;
             color: #333;
-            font-size: 0.9em;
+            font-size: 0.95em;
         }
 
         .form-group input {
             width: 100%;
-            padding: 12px;
+            padding: 15px;
             border: 2px solid #e9ecef;
-            border-radius: 8px;
-            font-size: 14px;
-            transition: border-color 0.3s ease;
-            background: #fff;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: white;
         }
 
         .form-group input:focus {
             outline: none;
-            border-color: #007bff;
-            box-shadow: 0 0 0 3px rgba(0,123,255,0.1);
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            transform: translateY(-1px);
         }
 
-        .required {
-            color: #dc3545;
-        }
-
-        .btn {
-            width: 100%;
-            padding: 14px;
-            border: none;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin-top: 15px;
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
-            color: white;
-        }
-
-        .btn-primary:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0,123,255,0.3);
-        }
-
-        #telegram-btn {
-            background: linear-gradient(135deg, #0088cc 0%, #0066aa 100%);
-            font-weight: 700;
-            font-size: 15px;
-            padding: 16px;
-        }
-
-        #telegram-btn:hover:not(:disabled) {
-            background: linear-gradient(135deg, #0099dd 0%, #0077bb 100%);
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0,136,204,0.4);
-        }
-
-        .btn:disabled {
-            opacity: 0.6;
+        .form-group input:disabled {
+            background: #f8f9fa;
+            color: #6c757d;
             cursor: not-allowed;
-            transform: none !important;
+        }
+
+        .pin-display {
+            text-align: center;
+            margin: 25px 0;
+        }
+
+        .pin-display.enabled {
+            background: linear-gradient(135deg, #ffeaa7 0%, #fab1a0 100%);
+            padding: 20px;
+            border-radius: 15px;
+            transform: scale(1.02);
+        }
+
+        .pin-label {
+            font-size: 0.9em;
+            color: #666;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .pin-value {
+            font-size: 2.5em;
+            font-weight: 700;
+            font-family: 'Courier New', monospace;
+            color: #2d3436;
+            letter-spacing: 0.1em;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .pin-instruction {
+            font-size: 0.85em;
+            color: #636e72;
+            margin-top: 8px;
+            font-style: italic;
+        }
+
+        .telegram-section {
+            margin-top: 25px;
+            padding-top: 25px;
+            border-top: 2px solid #f1f3f4;
+        }
+
+        .telegram-info {
+            background: #e8f4fd;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            font-size: 0.9em;
+            color: #0c5460;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #ffffff;
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 8px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .success-animation {
+            animation: successPulse 0.6s ease-out;
+        }
+
+        @keyframes successPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
         }
 
         .hidden {
             display: none;
         }
 
-        .status {
-            text-align: center;
-            padding: 12px;
-            margin-bottom: 20px;
-            border-radius: 8px;
-            font-weight: 500;
-            font-size: 0.85em;
-        }
-
-        .status.checking {
-            background: #fff3cd;
-            color: #856404;
-            border: 1px solid #ffeaa7;
-        }
-
-        .status.connected {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-
-        .status.error {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-
-        .success-screen {
-            text-align: center;
-            padding: 30px 20px;
-            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
-            color: #155724;
-            border-radius: 8px;
-            margin-top: 10px;
-        }
-
-        .success-screen h2 {
-            font-size: 1.5em;
-            margin-bottom: 15px;
-            color: #155724;
-        }
-
-        .success-screen p {
-            font-size: 0.9em;
-            line-height: 1.5;
-            margin-bottom: 10px;
-        }
-
-        .workflow-steps {
-            background: #e7f3ff;
-            border-radius: 8px;
-            padding: 15px;
-            margin-top: 20px;
-        }
-
-        .workflow-steps h4 {
-            color: #0056b3;
-            font-size: 0.9em;
-            margin-bottom: 10px;
-        }
-
-        .workflow-steps ol {
-            color: #0056b3;
-            font-size: 0.8em;
-            line-height: 1.4;
-            margin-left: 15px;
-        }
-
-        .workflow-steps li {
-            margin-bottom: 5px;
-        }
-
-        .icon {
-            font-size: 2em;
-            margin-bottom: 10px;
-        }
-
         @media (max-width: 480px) {
             .container {
                 margin: 10px;
-                border-radius: 10px;
+                border-radius: 15px;
             }
             
             .content {
                 padding: 20px;
             }
             
-            .header {
-                padding: 20px;
+            .pin-value {
+                font-size: 2em;
             }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="header" id="header">
-            <div class="icon">📷</div>
-            <h1>Smart Witness</h1>
-            <div class="subtitle" id="subtitle">Configuración WiFi Simplificada</div>
+        <div class="header">
+            <h1>📷 Smart Witness</h1>
+            <div class="subtitle">Configuración de Dispositivo</div>
         </div>
 
         <div class="content">
-            <div id="ble-status" class="status checking">
-                🔍 Verificando compatibilidad Bluetooth...
-            </div>
-
-            <div id="config-form">
-                <div class="info-box">
-                    <h3>✨ Configuración Simplificada</h3>
-                    <p>Solo necesitamos tu WiFi. El usuario de Telegram se detectará automáticamente cuando respondas al mensaje del bot.</p>
+            <!-- Connection Section -->
+            <div class="connection-section">
+                <div id="connection-status" class="connection-status disconnected">
+                    🔍 Dispositivo no conectado
                 </div>
-
-                <div class="form-group">
-                    <label for="ssid">Red WiFi <span class="required">*</span></label>
-                    <input type="text" id="ssid" placeholder="Nombre de tu WiFi" maxlength="31" required>
-                </div>
-
-                <div class="form-group">
-                    <label for="password">Contraseña WiFi <span class="required">*</span></label>
-                    <input type="password" id="password" placeholder="••••••••" maxlength="63" required>
-                </div>
-
-                <button id="connect-btn" class="btn btn-primary" disabled>
-                    🔗 Conectar con Smart Witness
-                </button>
-
-                <button id="send-config-btn" class="btn btn-primary hidden" disabled>
-                    📤 Configurar Dispositivo
-                </button>
-
-                <button id="telegram-btn" class="btn btn-primary hidden" disabled>
-                    📱 Abrir Telegram y Completar Configuración
-                </button>
-
-                <div class="workflow-steps">
-                    <h4>🚀 Proceso Automatizado:</h4>
-                    <ol>
-                        <li>Configura WiFi aquí</li>
-                        <li>El dispositivo se conectará automáticamente</li>
-                        <li>Haz clic en "Abrir Telegram"</li>
-                        <li>Tu usuario se detectará automáticamente</li>
-                        <li>¡Listo para usar!</li>
-                    </ol>
-                </div>
-            </div>
-
-            <div id="success-screen" class="success-screen hidden">
-                <div class="icon">🎉</div>
-                <h2>¡Configuración Enviada!</h2>
-                <p><strong>El dispositivo está configurando WiFi...</strong></p>
-                <p>En unos momentos recibirás un enlace de Telegram automáticamente.</p>
-                <p>✨ <strong>No necesitas hacer nada más por ahora</strong></p>
                 
-                <div style="margin-top: 20px; padding: 15px; background: rgba(255,255,255,0.3); border-radius: 8px;">
-                    <p style="font-size: 0.8em; color: #155724;">
-                        <strong>Siguiente paso:</strong> Busca el mensaje del bot en Telegram con un enlace que empezará con "https://t.me/SmartWitnessBot?start=..."
-                    </p>
+                <button id="connect-btn" class="btn btn-primary">
+                    🔗 Conectar con Dispositivo
+                </button>
+            </div>
+
+            <!-- Configuration Form -->
+            <div id="form-section" class="form-section">
+                <div class="form-group">
+                    <label for="ssid">Red WiFi</label>
+                    <input type="text" id="ssid" placeholder="Nombre de tu red WiFi" disabled>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Contraseña WiFi</label>
+                    <input type="password" id="password" placeholder="Contraseña de tu red WiFi" disabled>
+                </div>
+
+                <!-- PIN Display -->
+                <div id="pin-display" class="pin-display">
+                    <div class="pin-label">PIN del Dispositivo</div>
+                    <div id="pin-value" class="pin-value">---</div>
+                    <div class="pin-instruction">Anota este número para usarlo en Telegram</div>
+                </div>
+
+                <!-- Configure Button -->
+                <button id="configure-btn" class="btn btn-success" disabled>
+                    ⚙️ Configurar Dispositivo
+                </button>
+
+                <!-- Telegram Section -->
+                <div id="telegram-section" class="telegram-section hidden">
+                    <div class="telegram-info">
+                        📱 <strong>Siguiente paso:</strong> El dispositivo se reiniciará automáticamente. 
+                        Usa el botón de abajo para abrir Telegram y envía tu PIN.
+                    </div>
+                    <button id="telegram-btn" class="btn btn-primary">
+                        💬 Abrir Telegram
+                    </button>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
+        // BLE Configuration
+        const SERVICE_UUID = '12345678-1234-1234-1234-123456789abc';
+        const CHAR_CONFIG_UUID = '87654321-4321-4321-4321-cba987654321';
+        const CHAR_STATUS_UUID = '11111111-2222-3333-4444-555555555555';
+        const CHAR_PIN_UUID = 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee';
+        const CHAR_COMMAND_UUID = 'bbbbbbbb-cccc-dddd-eeee-ffffffffffff';
+
+        // Global variables
         let bleDevice = null;
         let bleServer = null;
         let configCharacteristic = null;
         let statusCharacteristic = null;
-        let deviceIdCharacteristic = null;
+        let pinCharacteristic = null;
         let commandCharacteristic = null;
         let isConnected = false;
-        let deviceId = null;
+        let devicePin = '';
 
-        const SERVICE_UUID = '12345678-1234-1234-1234-123456789abc';
-        const CHAR_CONFIG_UUID = '87654321-4321-4321-4321-cba987654321';
-        const CHAR_STATUS_UUID = '11111111-2222-3333-4444-555555555555';
-        const CHAR_DEVICE_ID_UUID = 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee';
-        const CHAR_COMMAND_UUID = 'bbbbbbbb-cccc-dddd-eeee-ffffffffffff';
+        // DOM Elements
+        const connectBtn = document.getElementById('connect-btn');
+        const connectionStatus = document.getElementById('connection-status');
+        const formSection = document.getElementById('form-section');
+        const ssidInput = document.getElementById('ssid');
+        const passwordInput = document.getElementById('password');
+        const pinDisplay = document.getElementById('pin-display');
+        const pinValue = document.getElementById('pin-value');
+        const configureBtn = document.getElementById('configure-btn');
+        const telegramSection = document.getElementById('telegram-section');
+        const telegramBtn = document.getElementById('telegram-btn');
 
+        // Event Listeners
+        connectBtn.addEventListener('click', connectToDevice);
+        configureBtn.addEventListener('click', configureDevice);
+        telegramBtn.addEventListener('click', openTelegram);
+        ssidInput.addEventListener('input', validateForm);
+        passwordInput.addEventListener('input', validateForm);
+
+        // Check browser compatibility
         document.addEventListener('DOMContentLoaded', function() {
-            const header = document.getElementById('header');
-            const subtitle = document.getElementById('subtitle');
-            
             if (!navigator.bluetooth) {
-                header.classList.add('incompatible');
-                subtitle.textContent = 'Navegador incompatible con Bluetooth';
-                updateStatus('❌ Navegador no compatible con Bluetooth LE', 'error');
-                document.getElementById('config-form').style.display = 'none';
-                return;
+                updateConnectionStatus('❌ Navegador no compatible con Bluetooth', 'disconnected');
+                connectBtn.disabled = true;
+                connectBtn.textContent = 'Navegador Incompatible';
             }
-            
-            header.classList.add('compatible');
-            subtitle.textContent = 'Configuración WiFi Simplificada';
-            updateStatus('✅ Navegador compatible - Listo para configurar', 'connected');
-            
-            document.getElementById('connect-btn').addEventListener('click', connectToDevice);
-            document.getElementById('send-config-btn').addEventListener('click', sendConfiguration);
-            document.getElementById('telegram-btn').addEventListener('click', openTelegram);
-            
-            const requiredFields = ['ssid', 'password'];
-            requiredFields.forEach(fieldId => {
-                document.getElementById(fieldId).addEventListener('input', updateButtonState);
-            });
-            
-            updateButtonState();
         });
 
-        function updateStatus(message, type = 'checking') {
-            const statusElement = document.getElementById('ble-status');
-            statusElement.textContent = message;
-            statusElement.className = `status ${type}`;
-        }
-
-        function updateButtonState() {
-            const connectBtn = document.getElementById('connect-btn');
-            const sendConfigBtn = document.getElementById('send-config-btn');
-            
-            const ssid = document.getElementById('ssid').value.trim();
-            const password = document.getElementById('password').value.trim();
-            
-            const hasRequiredFields = ssid.length > 0 && password.length > 0;
-            
-            connectBtn.disabled = !hasRequiredFields;
-            sendConfigBtn.disabled = !hasRequiredFields || !isConnected;
+        function updateConnectionStatus(message, state) {
+            connectionStatus.textContent = message;
+            connectionStatus.className = `connection-status ${state}`;
         }
 
         async function connectToDevice() {
             try {
-                updateStatus('🔍 Buscando Smart Witness...', 'checking');
-                
+                updateConnectionStatus('🔍 Buscando dispositivo...', 'connecting');
+                connectBtn.innerHTML = '<span class="loading-spinner"></span>Conectando...';
+                connectBtn.disabled = true;
+
+                // Request device
                 bleDevice = await navigator.bluetooth.requestDevice({
                     filters: [{ namePrefix: 'SmartWitness_' }],
                     optionalServices: [SERVICE_UUID]
                 });
 
-                updateStatus(`📱 Conectando a ${bleDevice.name}...`, 'checking');
+                updateConnectionStatus(`📱 Conectando a ${bleDevice.name}...`, 'connecting');
 
+                // Connect to GATT server
                 bleDevice.addEventListener('gattserverdisconnected', onDisconnected);
                 bleServer = await bleDevice.gatt.connect();
-                
+
+                // Get service and characteristics
                 const service = await bleServer.getPrimaryService(SERVICE_UUID);
+                
                 configCharacteristic = await service.getCharacteristic(CHAR_CONFIG_UUID);
-                statusCharacteristic = await service.getCharacteristic(CHAR_STATUS_UUID);
-                deviceIdCharacteristic = await service.getCharacteristic(CHAR_DEVICE_ID_UUID);
-                commandCharacteristic = await service.getCharacteristic(CHAR_COMMAND_UUID);
                 
                 try {
+                    statusCharacteristic = await service.getCharacteristic(CHAR_STATUS_UUID);
                     await statusCharacteristic.startNotifications();
                     statusCharacteristic.addEventListener('characteristicvaluechanged', onStatusChanged);
                 } catch (error) {
-                    console.log('⚠️ Status notifications not available');
+                    console.log('Status notifications not available');
                 }
 
                 try {
-                    await deviceIdCharacteristic.startNotifications();
-                    deviceIdCharacteristic.addEventListener('characteristicvaluechanged', onDeviceIdReceived);
+                    pinCharacteristic = await service.getCharacteristic(CHAR_PIN_UUID);
+                    await pinCharacteristic.startNotifications();
+                    pinCharacteristic.addEventListener('characteristicvaluechanged', onPinReceived);
                 } catch (error) {
-                    console.log('⚠️ Device ID notifications not available');
+                    console.log('PIN notifications not available');
                 }
 
+                try {
+                    commandCharacteristic = await service.getCharacteristic(CHAR_COMMAND_UUID);
+                } catch (error) {
+                    console.log('Command characteristic not available');
+                }
+
+                // Connection successful
                 isConnected = true;
-                updateStatus(`✅ Conectado a ${bleDevice.name}`, 'connected');
+                updateConnectionStatus(`✅ Conectado a ${bleDevice.name}`, 'connected');
+                connectionStatus.classList.add('success-animation');
                 
-                document.getElementById('connect-btn').classList.add('hidden');
-                document.getElementById('send-config-btn').classList.remove('hidden');
-                updateButtonState();
+                connectBtn.style.display = 'none';
+                enableForm();
+
+                // Request PIN from device (it should send automatically)
+                console.log('Connected successfully, waiting for PIN...');
 
             } catch (error) {
-                console.error('❌ Connection error:', error);
-                updateStatus('❌ Error de conexión - Intenta de nuevo', 'error');
+                console.error('Connection error:', error);
+                updateConnectionStatus('❌ Error de conexión', 'disconnected');
+                connectBtn.innerHTML = '🔗 Conectar con Dispositivo';
+                connectBtn.disabled = false;
             }
         }
 
-        async function sendConfiguration() {
+        function enableForm() {
+            formSection.classList.add('enabled');
+            ssidInput.disabled = false;
+            passwordInput.disabled = false;
+            
+            // Focus on first input
+            setTimeout(() => ssidInput.focus(), 300);
+        }
+
+        function onPinReceived(event) {
+            const decoder = new TextDecoder();
+            devicePin = decoder.decode(event.target.value);
+            
+            console.log('PIN received:', devicePin);
+            
+            if (devicePin && devicePin !== '---') {
+                pinValue.textContent = devicePin;
+                pinDisplay.classList.add('enabled');
+                pinDisplay.classList.add('success-animation');
+                
+                // Update instruction
+                pinDisplay.querySelector('.pin-instruction').textContent = 
+                    `✅ PIN recibido: ${devicePin} - Anótalo para Telegram`;
+                
+                validateForm();
+            }
+        }
+
+        function onStatusChanged(event) {
+            const decoder = new TextDecoder();
+            const status = decoder.decode(event.target.value);
+            console.log('Status update:', status);
+
+            switch (status) {
+                case 'config_complete_with_pin':
+                    showTelegramSection();
+                    break;
+                case 'telegram_opened_restarting':
+                    updateConnectionStatus('🔄 Dispositivo reiniciando...', 'connecting');
+                    showRestartMessage();
+                    break;
+            }
+        }
+
+        function validateForm() {
+            const hasSSID = ssidInput.value.trim().length > 0;
+            const hasPassword = passwordInput.value.trim().length > 0;
+            const hasPin = devicePin && devicePin !== '---';
+            
+            configureBtn.disabled = !(hasSSID && hasPassword && hasPin);
+            
+            if (hasSSID && hasPassword && hasPin) {
+                configureBtn.classList.add('success-animation');
+            }
+        }
+
+        async function configureDevice() {
             if (!isConnected || !configCharacteristic) {
-                updateStatus('❌ Conexión no disponible', 'error');
+                alert('Dispositivo no conectado');
                 return;
             }
 
             try {
-                updateStatus('📤 Configurando dispositivo...', 'checking');
+                configureBtn.innerHTML = '<span class="loading-spinner"></span>Configurando...';
+                configureBtn.disabled = true;
 
                 const config = {
-                    ssid: document.getElementById('ssid').value.trim(),
-                    password: document.getElementById('password').value.trim()
+                    ssid: ssidInput.value.trim(),
+                    password: passwordInput.value.trim()
                 };
-
-                console.log('Sending simplified config:', config);
 
                 const configJson = JSON.stringify(config);
                 const encoder = new TextEncoder();
@@ -451,162 +514,79 @@
 
                 await configCharacteristic.writeValue(data);
                 
-                // Immediate feedback
-                updateStatus('✅ WiFi configurado - Generando enlace Telegram...', 'connected');
+                // Configuration sent successfully
+                configureBtn.innerHTML = '✅ Configuración Enviada';
                 
-                // Update info box
-                const infoBox = document.querySelector('.info-box');
-                if (infoBox) {
-                    infoBox.innerHTML = `
-                        <h3>⚡ Configuración Automática en Progreso</h3>
-                        <p>El dispositivo está configurando WiFi y generando tu enlace personalizado de Telegram...</p>
-                    `;
-                }
+                // Show telegram section after a short delay
+                setTimeout(showTelegramSection, 1500);
 
             } catch (error) {
-                console.error('❌ Send config error:', error);
-                updateStatus('❌ Error enviando configuración', 'error');
+                console.error('Configuration error:', error);
+                configureBtn.innerHTML = '❌ Error de Configuración';
+                setTimeout(() => {
+                    configureBtn.innerHTML = '⚙️ Configurar Dispositivo';
+                    configureBtn.disabled = false;
+                }, 3000);
             }
         }
 
-        function onDisconnected() {
-            updateStatus('📱 Dispositivo desconectado', 'error');
-            isConnected = false;
-            bleDevice = null;
-            document.getElementById('connect-btn').classList.remove('hidden');
-            document.getElementById('send-config-btn').classList.add('hidden');
-            updateButtonState();
+        function showTelegramSection() {
+            telegramSection.classList.remove('hidden');
+            telegramSection.scrollIntoView({ behavior: 'smooth' });
         }
 
-        function onDeviceIdReceived(event) {
-            const decoder = new TextDecoder();
-            deviceId = decoder.decode(event.target.value);
-            
-            console.log('Device ID received:', deviceId);
-            
-            // Show Telegram button immediately
-            if (deviceId && deviceId.length > 0) {
-                showTelegramButton();
-            }
-        }
-
-        function onStatusChanged(event) {
-            const decoder = new TextDecoder();
-            const status = decoder.decode(event.target.value);
-
-            console.log('Status update:', status);
-
-            switch (status) {
-                case 'ready_for_config':
-                    updateStatus('📋 Listo para configuración', 'connected');
-                    break;
-                case 'processing_config':
-                    updateStatus('🔄 Procesando configuración...', 'checking');
-                    break;
-                case 'config_complete_with_telegram_link':
-                    updateStatus('✅ ¡Configuración completa!', 'connected');
-                    // Wait for device ID to arrive, button will show automatically
-                    break;
-                case 'telegram_opened_shutting_down':
-                    updateStatus('🎉 ¡Telegram abierto! Cerrando configuración...', 'connected');
-                    setTimeout(showFinalSuccess, 2000);
-                    break;
-                case 'error_invalid_data':
-                    updateStatus('❌ Datos inválidos', 'error');
-                    break;
-                default:
-                    // Show raw status for debugging
-                    if (status.startsWith('error_')) {
-                        updateStatus('❌ ' + status.replace('error_', '').replace('_', ' '), 'error');
-                    } else {
-                        updateStatus('🔄 ' + status.replace('_', ' '), 'checking');
-                    }
-            }
-        }
-
-        function showTelegramButton() {
-            updateStatus('🎯 ¡Listo! Haz clic para abrir Telegram', 'connected');
-            
-            document.getElementById('send-config-btn').classList.add('hidden');
-            document.getElementById('telegram-btn').classList.remove('hidden');
-            document.getElementById('telegram-btn').disabled = false;
-            
-            // Update instructions
-            const infoBox = document.querySelector('.info-box');
-            if (infoBox) {
-                infoBox.innerHTML = `
-                    <h3>🎉 ¡Configuración WiFi Completada!</h3>
-                    <p><strong>Siguiente paso:</strong> Haz clic en "Abrir Telegram" para completar la configuración automáticamente.</p>
-                `;
-            }
+        function showRestartMessage() {
+            connectionStatus.innerHTML = '🔄 Dispositivo reiniciando...<br><small>Abrir Telegram y enviar PIN: ' + devicePin + '</small>';
         }
 
         async function openTelegram() {
-            if (!deviceId) {
-                updateStatus('❌ Device ID no disponible', 'error');
-                return;
-            }
-            
-            updateStatus('📱 Abriendo Telegram...', 'checking');
-            
-            // Open Telegram with device ID
-            const telegramLink = `https://t.me/SmartWitnessBot?start=${deviceId}`;
-            console.log('Opening Telegram link:', telegramLink);
-            
-            // Open in new tab/window
-            window.open(telegramLink, '_blank');
-            
-            // Notify ESP32 that Telegram was opened
-            try {
-                if (commandCharacteristic) {
+            // Send command to device that telegram is being opened
+            if (commandCharacteristic) {
+                try {
                     const encoder = new TextEncoder();
                     await commandCharacteristic.writeValue(encoder.encode('telegram_opened'));
+                } catch (error) {
+                    console.log('Could not send telegram_opened command');
                 }
-            } catch (error) {
-                console.error('Error notifying ESP32:', error);
             }
+
+            // Open Telegram
+            const telegramUrl = 'https://t.me/SmartWitnessBot';
+            window.open(telegramUrl, '_blank');
             
-            // Show immediate feedback
-            updateStatus('✅ Telegram abierto - Dispositivo configurándose...', 'connected');
+            // Update button state
+            telegramBtn.innerHTML = '✅ Telegram Abierto';
+            telegramBtn.disabled = true;
             
-            // Show instructions for next steps
+            // Show final instructions
             setTimeout(() => {
-                updateStatus('👆 Completa la configuración en Telegram', 'connected');
-            }, 2000);
+                updateConnectionStatus(`✅ Configuración completa. Envía "${devicePin}" en Telegram`, 'connected');
+            }, 1000);
         }
 
-        function showFinalSuccess() {
-            document.getElementById('config-form').classList.add('hidden');
-            document.getElementById('success-screen').classList.remove('hidden');
+        function onDisconnected() {
+            console.log('Device disconnected');
+            isConnected = false;
+            bleDevice = null;
             
-            // Update success message for new workflow
-            document.getElementById('success-screen').innerHTML = `
-                <div class="icon">🎉</div>
-                <h2>¡Configuración Completada!</h2>
-                <p><strong>El dispositivo está funcionando</strong></p>
-                <p>✅ WiFi configurado correctamente</p>
-                <p>✅ Telegram vinculado automáticamente</p>
-                <p>🚀 <strong>Smart Witness listo para usar</strong></p>
+            if (telegramSection.classList.contains('hidden')) {
+                // Only show reconnect option if we haven't reached telegram phase
+                updateConnectionStatus('📱 Dispositivo desconectado', 'disconnected');
+                connectBtn.style.display = 'block';
+                connectBtn.innerHTML = '🔗 Reconectar Dispositivo';
+                connectBtn.disabled = false;
                 
-                <div style="margin-top: 20px; padding: 15px; background: rgba(255,255,255,0.3); border-radius: 8px;">
-                    <p style="font-size: 0.9em; color: #155724;">
-                        <strong>Ya puedes cerrar esta página.</strong><br>
-                        El dispositivo funcionará automáticamente.
-                    </p>
-                </div>
-            `;
-            
-            // Auto-disconnect
-            setTimeout(() => {
-                if (bleDevice && bleDevice.gatt.connected) {
-                    bleDevice.gatt.disconnect();
-                }
-            }, 3000);
-        }
-
-        function showSuccessScreen() {
-            // Legacy function - now handled by showFinalSuccess
-            showFinalSuccess();
+                // Disable form
+                formSection.classList.remove('enabled');
+                ssidInput.disabled = true;
+                passwordInput.disabled = true;
+                configureBtn.disabled = true;
+                
+                // Reset PIN display
+                pinValue.textContent = '---';
+                pinDisplay.classList.remove('enabled');
+                devicePin = '';
+            }
         }
     </script>
 </body>
