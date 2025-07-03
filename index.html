@@ -345,8 +345,13 @@
                         🎉 <strong>¡Configuración enviada!</strong><br>
                         📱 Telegram se abrió automáticamente<br>
                         🔄 El dispositivo se está reiniciando<br><br>
-                        <strong>📋 Siguiente paso:</strong><br>
-                        Envía tu PIN <strong id="final-pin"></strong> en Telegram para completar la configuración
+                        
+                        <strong>📋 Pasos finales:</strong><br>
+                        1️⃣ En Telegram, envía: <strong>/start</strong> (si no se envió automáticamente)<br>
+                        2️⃣ Luego envía tu PIN: <strong id="final-pin"></strong><br>
+                        3️⃣ ¡Configuración completa!<br><br>
+                        
+                        <small>💡 El ESP32 está reiniciando - puede tomar 30-60 segundos estar listo</small>
                     </div>
                 </div>
 
@@ -599,6 +604,20 @@
                 configureBtn.innerHTML = '<span class="loading-spinner"></span>Configurando...';
                 configureBtn.disabled = true;
 
+                // 🚀 PASO 1: ABRIR TELEGRAM INMEDIATAMENTE (sin esperar nada)
+                console.log('Opening Telegram immediately...');
+                const telegramUrl = `https://t.me/SmartWitnessBot?text=/start`;
+                const telegramWindow = window.open(telegramUrl, '_blank');
+                
+                if (!telegramWindow) {
+                    // Popup blocked, try simple URL
+                    window.open('https://t.me/SmartWitnessBot', '_blank');
+                    updateConnectionStatus('📱 Abre Telegram manualmente si no se abrió automáticamente', 'connecting');
+                } else {
+                    updateConnectionStatus('📱 Telegram abierto - envía /start si no se envió automáticamente', 'connected');
+                }
+
+                // 🚀 PASO 2: Enviar configuración WiFi al ESP32
                 const config = {
                     ssid: ssidInput.value.trim(),
                     password: passwordInput.value.trim()
@@ -609,14 +628,11 @@
                 const data = encoder.encode(configJson);
 
                 await configCharacteristic.writeValue(data);
+                console.log('WiFi configuration sent to ESP32');
                 
-                // Configuration sent successfully
-                configureBtn.innerHTML = '✅ Configuración Enviada';
+                // 🚀 PASO 3: Enviar comando de reinicio al ESP32
+                await new Promise(resolve => setTimeout(resolve, 500));
                 
-                // Wait a moment for ESP32 to process
-                await new Promise(resolve => setTimeout(resolve, 1000));
-                
-                // Send restart command to ESP32
                 if (commandCharacteristic) {
                     try {
                         await commandCharacteristic.writeValue(encoder.encode('telegram_opened'));
@@ -626,18 +642,8 @@
                     }
                 }
 
-                // Automatically open Telegram
-                const telegramUrl = 'https://t.me/SmartWitnessBot';
-                const telegramWindow = window.open(telegramUrl, '_blank');
-                
-                if (!telegramWindow) {
-                    // Popup blocked, show manual link
-                    updateConnectionStatus('🚨 Popup bloqueado. Abre manualmente: https://t.me/SmartWitnessBot', 'connecting');
-                } else {
-                    updateConnectionStatus('📱 Telegram abierto automáticamente', 'connected');
-                }
-                
-                // Show success section with final instructions
+                // 🚀 PASO 4: Mostrar instrucciones finales
+                configureBtn.innerHTML = '✅ Configuración Enviada';
                 showSuccessSection();
 
             } catch (error) {
