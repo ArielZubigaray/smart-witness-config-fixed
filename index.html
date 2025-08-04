@@ -606,12 +606,12 @@
 
                 // 🚀 PASO 1: ABRIR TELEGRAM INMEDIATAMENTE (sin esperar nada)
                 console.log('Opening Telegram immediately...');
-                const telegramUrl = `https://t.me/SmartWitnessBot?text=/start`;
+                const telegramUrl = `https://t.me/SWEsp32cam_bot?text=/start`;
                 const telegramWindow = window.open(telegramUrl, '_blank');
                 
                 if (!telegramWindow) {
                     // Popup blocked, try simple URL
-                    window.open('https://t.me/SmartWitnessBot', '_blank');
+                    window.open('https://t.me/SWEsp32cam_bot', '_blank');
                     updateConnectionStatus('📱 Abre Telegram manualmente si no se abrió automáticamente', 'connecting');
                 } else {
                     updateConnectionStatus('📱 Telegram abierto - envía /start si no se envió automáticamente', 'connected');
