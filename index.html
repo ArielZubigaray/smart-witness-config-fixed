@@ -596,6 +596,12 @@
         }
 
         function enableRecoveryMode() {
+            // Check if already in recovery mode to avoid duplicating elements
+            if (isRecoveryMode) {
+                console.log('Already in recovery mode, skipping setup');
+                return;
+            }
+            
             console.log('Enabling WiFi Recovery Mode');
             
             // Update header
@@ -617,7 +623,7 @@
             configureBtn.innerHTML = '💾 Guardar y Reiniciar Dispositivo';
             configureBtn.className = 'btn btn-primary';  // Different color for recovery
             
-            // Show current WiFi info
+            // Show current WiFi info (only once)
             showCurrentWiFiInfo();
             
             // Update validation (no PIN needed)
@@ -625,6 +631,13 @@
         }
 
         function showCurrentWiFiInfo() {
+            // Check if already exists to prevent duplicates
+            const existingInfo = document.getElementById('current-wifi-info');
+            if (existingInfo) {
+                console.log('WiFi info already displayed, skipping');
+                return;
+            }
+            
             const currentWiFiInfo = document.createElement('div');
             currentWiFiInfo.id = 'current-wifi-info';
             currentWiFiInfo.className = 'telegram-info';
