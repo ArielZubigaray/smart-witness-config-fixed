@@ -382,6 +382,7 @@
         let commandCharacteristic = null;
         let isConnected = false;
         let devicePin = '';
+        let isRecoveryMode = false;  // Flag for WiFi recovery mode
 
         // DOM Elements
         const connectBtn = document.getElementById('connect-btn');
@@ -569,6 +570,14 @@
             const status = decoder.decode(event.target.value);
             console.log('Status update:', status);
 
+            // Check for WiFi recovery mode
+            if (status.includes('wifi_recovery_active')) {
+                isRecoveryMode = true;
+                console.log('WiFi Recovery mode detected');
+                enableRecoveryMode();
+                return;
+            }
+
             switch (status) {
                 case 'config_complete_with_pin':
                     showTelegramSection();
@@ -577,20 +586,84 @@
                     updateConnectionStatus('🔄 Dispositivo reiniciando...', 'connecting');
                     showRestartMessage();
                     break;
+                case 'wifi_recovery_complete':
+                    showRecoverySuccess();
+                    break;
+                case 'wifi_recovery_timeout':
+                    showRecoveryTimeout();
+                    break;
             }
+        }
+
+        function enableRecoveryMode() {
+            console.log('Enabling WiFi Recovery Mode');
+            
+            // Update header
+            document.querySelector('.header h1').textContent = '🔄 Smart Witness - Recuperación WiFi';
+            document.querySelector('.header .subtitle').textContent = 'Configuración de Red de Respaldo';
+            
+            // Hide PIN display completely
+            pinDisplay.style.display = 'none';
+            
+            // Update form labels
+            document.querySelector('label[for="ssid"]').textContent = 'Nueva Red WiFi (Red A)';
+            document.querySelector('label[for="password"]').textContent = 'Nueva Contraseña WiFi (Red A)';
+            
+            // Update placeholders
+            ssidInput.placeholder = 'Ingresa el nombre de la nueva red WiFi';
+            passwordInput.placeholder = 'Ingresa la contraseña de la nueva red';
+            
+            // Update configure button
+            configureBtn.innerHTML = '💾 Guardar y Reiniciar Dispositivo';
+            configureBtn.className = 'btn btn-primary';  // Different color for recovery
+            
+            // Show current WiFi info
+            showCurrentWiFiInfo();
+            
+            // Update validation (no PIN needed)
+            validateForm();
+        }
+
+        function showCurrentWiFiInfo() {
+            const currentWiFiInfo = document.createElement('div');
+            currentWiFiInfo.id = 'current-wifi-info';
+            currentWiFiInfo.className = 'telegram-info';
+            currentWiFiInfo.style.marginBottom = '20px';
+            currentWiFiInfo.innerHTML = `
+                <strong>⚠️ WiFi Recovery Mode</strong><br>
+                📶 Todas las redes WiFi configuradas han fallado<br>
+                🔄 El dispositivo está en modo BLE de recuperación<br>
+                ⏱️ Tiempo límite: 2 minutos<br><br>
+                <strong>✏️ Configura nueva red WiFi A:</strong>
+            `;
+            
+            // Insert before the first form group
+            const firstFormGroup = document.querySelector('.form-group');
+            firstFormGroup.parentNode.insertBefore(currentWiFiInfo, firstFormGroup);
         }
 
         function validateForm() {
             const hasSSID = ssidInput.value.trim().length > 0;
             const hasPassword = passwordInput.value.trim().length > 0;
-            const hasPin = devicePin && devicePin !== '---' && devicePin.length === 3;
             
-            console.log('Form validation:', { hasSSID, hasPassword, hasPin, devicePin });
-            
-            configureBtn.disabled = !(hasSSID && hasPassword && hasPin);
-            
-            if (hasSSID && hasPassword && hasPin) {
-                configureBtn.classList.add('success-animation');
+            if (isRecoveryMode) {
+                // Recovery mode - no PIN needed
+                console.log('Recovery form validation:', { hasSSID, hasPassword });
+                configureBtn.disabled = !(hasSSID && hasPassword);
+                
+                if (hasSSID && hasPassword) {
+                    configureBtn.classList.add('success-animation');
+                }
+            } else {
+                // Normal mode - PIN needed
+                const hasPin = devicePin && devicePin !== '---' && devicePin.length === 3;
+                console.log('Normal form validation:', { hasSSID, hasPassword, hasPin, devicePin });
+                
+                configureBtn.disabled = !(hasSSID && hasPassword && hasPin);
+                
+                if (hasSSID && hasPassword && hasPin) {
+                    configureBtn.classList.add('success-animation');
+                }
             }
         }
 
@@ -601,58 +674,98 @@
             }
 
             try {
-                configureBtn.innerHTML = '<span class="loading-spinner"></span>Configurando...';
+                if (isRecoveryMode) {
+                    configureBtn.innerHTML = '<span class="loading-spinner"></span>Guardando...';
+                } else {
+                    configureBtn.innerHTML = '<span class="loading-spinner"></span>Configurando...';
+                }
                 configureBtn.disabled = true;
 
-                // 🚀 PASO 1: ABRIR TELEGRAM INMEDIATAMENTE (sin esperar nada)
-                console.log('Opening Telegram immediately...');
-                const telegramUrl = `https://t.me/SWEsp32cam_bot?text=/start`;
-                const telegramWindow = window.open(telegramUrl, '_blank');
-                
-                if (!telegramWindow) {
-                    // Popup blocked, try simple URL
-                    window.open('https://t.me/SWEsp32cam_bot', '_blank');
-                    updateConnectionStatus('📱 Abre Telegram manualmente si no se abrió automáticamente', 'connecting');
+                // Handle Recovery Mode vs Normal Mode
+                if (isRecoveryMode) {
+                    // 🔄 RECOVERY MODE FLOW
+                    console.log('Recovery mode: saving new WiFi credentials');
+                    updateConnectionStatus('💾 Guardando nuevas credenciales WiFi...', 'connecting');
+
+                    // Send WiFi configuration to ESP32
+                    const config = {
+                        ssid: ssidInput.value.trim(),
+                        password: passwordInput.value.trim()
+                    };
+
+                    const configJson = JSON.stringify(config);
+                    const encoder = new TextEncoder();
+                    const data = encoder.encode(configJson);
+
+                    await configCharacteristic.writeValue(data);
+                    console.log('New WiFi credentials sent to ESP32 for recovery');
+                    
+                    // The ESP32 will handle restart automatically in recovery mode
+                    configureBtn.innerHTML = '✅ Credenciales Guardadas';
+                    showRecoverySuccess();
+
                 } else {
-                    updateConnectionStatus('📱 Telegram abierto - envía /start si no se envió automáticamente', 'connected');
-                }
-
-                // 🚀 PASO 2: Enviar configuración WiFi al ESP32
-                const config = {
-                    ssid: ssidInput.value.trim(),
-                    password: passwordInput.value.trim()
-                };
-
-                const configJson = JSON.stringify(config);
-                const encoder = new TextEncoder();
-                const data = encoder.encode(configJson);
-
-                await configCharacteristic.writeValue(data);
-                console.log('WiFi configuration sent to ESP32');
-                
-                // 🚀 PASO 3: Enviar comando de reinicio al ESP32
-                await new Promise(resolve => setTimeout(resolve, 500));
-                
-                if (commandCharacteristic) {
-                    try {
-                        await commandCharacteristic.writeValue(encoder.encode('telegram_opened'));
-                        console.log('Restart command sent to ESP32');
-                    } catch (error) {
-                        console.log('Could not send restart command:', error);
+                    // 🚀 NORMAL SETUP MODE FLOW
+                    console.log('Normal setup mode: full configuration');
+                    
+                    // PASO 1: ABRIR TELEGRAM INMEDIATAMENTE (sin esperar nada)
+                    console.log('Opening Telegram immediately...');
+                    const telegramUrl = `https://t.me/SWEsp32cam_bot?text=/start`;
+                    const telegramWindow = window.open(telegramUrl, '_blank');
+                    
+                    if (!telegramWindow) {
+                        // Popup blocked, try simple URL
+                        window.open('https://t.me/SWEsp32cam_bot', '_blank');
+                        updateConnectionStatus('📱 Abre Telegram manualmente si no se abrió automáticamente', 'connecting');
+                    } else {
+                        updateConnectionStatus('📱 Telegram abierto - envía /start si no se envió automáticamente', 'connected');
                     }
-                }
 
-                // 🚀 PASO 4: Mostrar instrucciones finales
-                configureBtn.innerHTML = '✅ Configuración Enviada';
-                showSuccessSection();
+                    // PASO 2: Enviar configuración WiFi al ESP32
+                    const config = {
+                        ssid: ssidInput.value.trim(),
+                        password: passwordInput.value.trim()
+                    };
+
+                    const configJson = JSON.stringify(config);
+                    const encoder = new TextEncoder();
+                    const data = encoder.encode(configJson);
+
+                    await configCharacteristic.writeValue(data);
+                    console.log('WiFi configuration sent to ESP32');
+                    
+                    // PASO 3: Enviar comando de reinicio al ESP32
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    
+                    if (commandCharacteristic) {
+                        try {
+                            await commandCharacteristic.writeValue(encoder.encode('telegram_opened'));
+                            console.log('Restart command sent to ESP32');
+                        } catch (error) {
+                            console.log('Could not send restart command:', error);
+                        }
+                    }
+
+                    // PASO 4: Mostrar instrucciones finales
+                    configureBtn.innerHTML = '✅ Configuración Enviada';
+                    showSuccessSection();
+                }
 
             } catch (error) {
                 console.error('Configuration error:', error);
-                configureBtn.innerHTML = '❌ Error de Configuración';
-                setTimeout(() => {
-                    configureBtn.innerHTML = '⚙️ Configurar Dispositivo';
-                    configureBtn.disabled = false;
-                }, 3000);
+                if (isRecoveryMode) {
+                    configureBtn.innerHTML = '❌ Error al Guardar';
+                    setTimeout(() => {
+                        configureBtn.innerHTML = '💾 Guardar y Reiniciar Dispositivo';
+                        configureBtn.disabled = false;
+                    }, 3000);
+                } else {
+                    configureBtn.innerHTML = '❌ Error de Configuración';
+                    setTimeout(() => {
+                        configureBtn.innerHTML = '⚙️ Configurar Dispositivo';
+                        configureBtn.disabled = false;
+                    }, 3000);
+                }
             }
         }
 
@@ -688,6 +801,65 @@
             setTimeout(() => {
                 updateConnectionStatus(`✅ Configuración completa. Envía "${devicePin}" en Telegram`, 'connected');
             }, 1000);
+        }
+
+        function showRecoverySuccess() {
+            console.log('WiFi Recovery completed successfully');
+            
+            // Update success section for recovery mode
+            successSection.innerHTML = `
+                <div class="telegram-info">
+                    🎉 <strong>¡WiFi Recovery Completado!</strong><br>
+                    💾 Nuevas credenciales WiFi guardadas<br>
+                    🔄 El dispositivo está reiniciando<br><br>
+                    
+                    <strong>📋 Próximos pasos:</strong><br>
+                    1️⃣ El ESP32 se reiniciará automáticamente<br>
+                    2️⃣ Intentará conectar con la nueva red WiFi<br>
+                    3️⃣ Volverá a modo operacional normal<br><br>
+                    
+                    <small>💡 El dispositivo puede tomar 30-60 segundos en conectar</small>
+                </div>
+            `;
+            
+            successSection.classList.remove('hidden');
+            successSection.scrollIntoView({ behavior: 'smooth' });
+            
+            updateConnectionStatus('✅ Recovery completado - dispositivo reiniciando', 'connected');
+        }
+
+        function showRecoveryTimeout() {
+            console.log('WiFi Recovery timed out');
+            
+            updateConnectionStatus('⏰ Tiempo de recovery expirado - dispositivo reintentando conexiones', 'connecting');
+            
+            // Show timeout message
+            const timeoutInfo = document.createElement('div');
+            timeoutInfo.className = 'telegram-info';
+            timeoutInfo.style.background = '#f8d7da';
+            timeoutInfo.style.color = '#721c24';
+            timeoutInfo.style.border = '2px solid #f5c6cb';
+            timeoutInfo.innerHTML = `
+                <strong>⏰ Tiempo de Recovery Expirado</strong><br>
+                🔄 El dispositivo volverá a intentar conexiones WiFi<br>
+                📶 Si siguen fallando, entrará en modo recovery nuevamente<br><br>
+                <small>💡 Puedes reconectar para intentar recovery otra vez</small>
+            `;
+            
+            // Insert after connection section
+            const connectionSection = document.querySelector('.connection-section');
+            connectionSection.parentNode.insertBefore(timeoutInfo, connectionSection.nextSibling);
+        }
+
+        function showSuccessSection() {
+            if (isRecoveryMode) {
+                showRecoverySuccess();
+            } else {
+                // Normal mode success section
+                document.getElementById('final-pin').textContent = devicePin;
+                successSection.classList.remove('hidden');
+                successSection.scrollIntoView({ behavior: 'smooth' });
+            }
         }
 
         function onDisconnected() {
