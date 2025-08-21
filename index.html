@@ -484,15 +484,36 @@
                 connectBtn.style.display = 'none';
                 enableForm();
 
-                // Set up PIN request timeout (if PIN not received in 10 seconds)
-                setTimeout(() => {
-                    if (!devicePin || devicePin === '---') {
+                // Check if device is in recovery mode by reading status immediately
+                setTimeout(async () => {
+                    if (statusCharacteristic) {
+                        try {
+                            const statusData = await statusCharacteristic.readValue();
+                            if (statusData.byteLength > 0) {
+                                const decoder = new TextDecoder();
+                                const currentStatus = decoder.decode(statusData);
+                                console.log('Initial status read:', currentStatus);
+                                
+                                if (currentStatus.includes('wifi_recovery_active')) {
+                                    isRecoveryMode = true;
+                                    console.log('Device is in WiFi Recovery mode - enabling recovery UI');
+                                    enableRecoveryMode();
+                                    return;
+                                }
+                            }
+                        } catch (error) {
+                            console.log('Could not read initial status:', error);
+                        }
+                    }
+                    
+                    // Normal flow - wait for PIN if not in recovery mode
+                    if (!isRecoveryMode && (!devicePin || devicePin === '---')) {
                         console.log('PIN not received automatically, showing manual option');
                         showManualPinOption();
                     }
-                }, 10000);
+                }, 2000);  // Reduced to 2 seconds for faster recovery detection
 
-                console.log('Connected successfully, waiting for PIN...');
+                console.log('Connected successfully, checking device mode...');
 
             } catch (error) {
                 console.error('Connection error:', error);
