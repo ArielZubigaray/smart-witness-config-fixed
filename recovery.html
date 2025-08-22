@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Witness - WiFi Recovery</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            max-width: 420px;
+            width: 100%;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            color: white;
+            padding: 25px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 1.8em;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .header .subtitle {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .connection-section {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .connection-status {
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .connection-status.disconnected {
+            background: #f8f9fa;
+            color: #6c757d;
+            border: 2px dashed #dee2e6;
+        }
+
+        .connection-status.connected {
+            background: #d4edda;
+            color: #155724;
+            border: 2px solid #c3e6cb;
+        }
+
+        .connection-status.connecting {
+            background: #fff3cd;
+            color: #856404;
+            border: 2px solid #ffeaa7;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 15px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            color: white;
+        }
+
+        .btn-danger:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(231, 76, 60, 0.4);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+            color: white;
+        }
+
+        .btn-success:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(39, 174, 96, 0.4);
+        }
+
+        .form-section {
+            opacity: 0.4;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+        }
+
+        .form-section.enabled {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+            font-size: 0.95em;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #e74c3c;
+            box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .form-group input:disabled {
+            background: #f8f9fa;
+            color: #6c757d;
+            cursor: not-allowed;
+        }
+
+        .recovery-info {
+            background: #f8d7da;
+            color: #721c24;
+            border: 2px solid #f5c6cb;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: 0.9em;
+        }
+
+        .success-section {
+            margin-top: 25px;
+            padding-top: 25px;
+            border-top: 2px solid #f1f3f4;
+        }
+
+        .success-info {
+            background: #d4edda;
+            color: #155724;
+            border: 2px solid #c3e6cb;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            font-size: 0.9em;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #ffffff;
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 8px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .success-animation {
+            animation: successPulse 0.6s ease-out;
+        }
+
+        @keyframes successPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                margin: 10px;
+                border-radius: 15px;
+            }
+            
+            .content {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔄 Smart Witness - WiFi Recovery</h1>
+            <div class="subtitle">Recuperación de Conexión WiFi</div>
+        </div>
+
+        <div class="content">
+            <!-- WiFi Recovery Info -->
+            <div class="recovery-info">
+                <strong>⚠️ Modo de Recuperación WiFi</strong><br>
+                📶 Todas las redes WiFi configuradas han fallado<br>
+                🔄 El dispositivo está en modo BLE de recuperación<br>
+                ⏱️ Tiempo límite: 2 minutos<br><br>
+                <strong>✏️ Configura nueva red WiFi:</strong>
+            </div>
+
+            <!-- Connection Section -->
+            <div class="connection-section">
+                <div id="connection-status" class="connection-status disconnected">
+                    🔍 Buscando dispositivo en recovery...
+                </div>
+                
+                <button id="connect-btn" class="btn btn-danger">
+                    🔗 Conectar con Dispositivo
+                </button>
+            </div>
+
+            <!-- WiFi Configuration Form -->
+            <div id="form-section" class="form-section">
+                <div class="form-group">
+                    <label for="ssid">Nueva Red WiFi</label>
+                    <input type="text" id="ssid" placeholder="Nombre de la nueva red WiFi" disabled>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Nueva Contraseña WiFi</label>
+                    <input type="password" id="password" placeholder="Contraseña de la nueva red WiFi" disabled>
+                </div>
+
+                <!-- Save & Restart Button -->
+                <button id="save-btn" class="btn btn-success" disabled>
+                    💾 Guardar y Reiniciar Dispositivo
+                </button>
+
+                <!-- Success Section -->
+                <div id="success-section" class="success-section hidden">
+                    <div class="success-info">
+                        🎉 <strong>¡WiFi Recovery Completado!</strong><br>
+                        💾 Nuevas credenciales WiFi guardadas<br>
+                        🔄 El dispositivo está reiniciando<br><br>
+                        
+                        <strong>📋 Próximos pasos:</strong><br>
+                        1️⃣ El ESP32 se reiniciará automáticamente<br>
+                        2️⃣ Intentará conectar con la nueva red WiFi<br>
+                        3️⃣ Volverá a modo operacional normal<br><br>
+                        
+                        <small>💡 El dispositivo puede tomar 30-60 segundos en conectar</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // BLE Configuration - Same UUIDs as main device
+        const SERVICE_UUID = '12345678-1234-1234-1234-123456789abc';
+        const CHAR_CONFIG_UUID = '87654321-4321-4321-4321-cba987654321';
+        const CHAR_STATUS_UUID = '11111111-2222-3333-4444-555555555555';
+
+        // Global variables
+        let bleDevice = null;
+        let bleServer = null;
+        let configCharacteristic = null;
+        let statusCharacteristic = null;
+        let isConnected = false;
+
+        // DOM Elements
+        const connectBtn = document.getElementById('connect-btn');
+        const connectionStatus = document.getElementById('connection-status');
+        const formSection = document.getElementById('form-section');
+        const ssidInput = document.getElementById('ssid');
+        const passwordInput = document.getElementById('password');
+        const saveBtn = document.getElementById('save-btn');
+        const successSection = document.getElementById('success-section');
+
+        // Event Listeners
+        connectBtn.addEventListener('click', connectToDevice);
+        saveBtn.addEventListener('click', saveWiFiCredentials);
+        ssidInput.addEventListener('input', validateForm);
+        passwordInput.addEventListener('input', validateForm);
+
+        // Check browser compatibility
+        document.addEventListener('DOMContentLoaded', function() {
+            if (!navigator.bluetooth) {
+                updateConnectionStatus('❌ Navegador no compatible con Bluetooth', 'disconnected');
+                connectBtn.disabled = true;
+                connectBtn.textContent = 'Navegador Incompatible';
+            }
+        });
+
+        function updateConnectionStatus(message, state) {
+            connectionStatus.textContent = message;
+            connectionStatus.className = `connection-status ${state}`;
+        }
+
+        async function connectToDevice() {
+            try {
+                updateConnectionStatus('🔍 Buscando dispositivo en recovery...', 'connecting');
+                connectBtn.innerHTML = '<span class="loading-spinner"></span>Conectando...';
+                connectBtn.disabled = true;
+
+                // Request device - ONLY recovery devices
+                bleDevice = await navigator.bluetooth.requestDevice({
+                    filters: [{ namePrefix: 'SmartWitness_RECOVERY_' }],
+                    optionalServices: [SERVICE_UUID]
+                });
+
+                updateConnectionStatus(`📱 Conectando a ${bleDevice.name}...`, 'connecting');
+
+                // Connect to GATT server
+                bleDevice.addEventListener('gattserverdisconnected', onDisconnected);
+                bleServer = await bleDevice.gatt.connect();
+
+                // Get service and characteristics
+                const service = await bleServer.getPrimaryService(SERVICE_UUID);
+                
+                configCharacteristic = await service.getCharacteristic(CHAR_CONFIG_UUID);
+                
+                try {
+                    statusCharacteristic = await service.getCharacteristic(CHAR_STATUS_UUID);
+                    await statusCharacteristic.startNotifications();
+                    statusCharacteristic.addEventListener('characteristicvaluechanged', onStatusChanged);
+                } catch (error) {
+                    console.log('Status notifications not available');
+                }
+
+                // Connection successful
+                isConnected = true;
+                updateConnectionStatus(`✅ Conectado a ${bleDevice.name}`, 'connected');
+                connectionStatus.classList.add('success-animation');
+                
+                connectBtn.style.display = 'none';
+                enableForm();
+
+                console.log('Connected successfully to recovery device');
+
+            } catch (error) {
+                console.error('Connection error:', error);
+                updateConnectionStatus('❌ Error de conexión', 'disconnected');
+                connectBtn.innerHTML = '🔗 Conectar con Dispositivo';
+                connectBtn.disabled = false;
+            }
+        }
+
+        function enableForm() {
+            formSection.classList.add('enabled');
+            ssidInput.disabled = false;
+            passwordInput.disabled = false;
+            
+            // Focus on first input
+            setTimeout(() => ssidInput.focus(), 300);
+        }
+
+        function onStatusChanged(event) {
+            const decoder = new TextDecoder();
+            const status = decoder.decode(event.target.value);
+            console.log('Status update:', status);
+
+            switch (status) {
+                case 'wifi_recovery_complete':
+                    showSuccessSection();
+                    break;
+            }
+        }
+
+        function validateForm() {
+            const hasSSID = ssidInput.value.trim().length > 0;
+            const hasPassword = passwordInput.value.trim().length > 0;
+            
+            console.log('Form validation:', { hasSSID, hasPassword });
+            
+            saveBtn.disabled = !(hasSSID && hasPassword);
+            
+            if (hasSSID && hasPassword) {
+                saveBtn.classList.add('success-animation');
+            }
+        }
+
+        async function saveWiFiCredentials() {
+            if (!isConnected || !configCharacteristic) {
+                alert('Dispositivo no conectado');
+                return;
+            }
+
+            try {
+                saveBtn.innerHTML = '<span class="loading-spinner"></span>Guardando...';
+                saveBtn.disabled = true;
+
+                updateConnectionStatus('💾 Guardando nuevas credenciales WiFi...', 'connecting');
+
+                // Send WiFi configuration to ESP32
+                const config = {
+                    ssid: ssidInput.value.trim(),
+                    password: passwordInput.value.trim()
+                };
+
+                const configJson = JSON.stringify(config);
+                const encoder = new TextEncoder();
+                const data = encoder.encode(configJson);
+
+                await configCharacteristic.writeValue(data);
+                console.log('New WiFi credentials sent to ESP32 for recovery');
+                
+                saveBtn.innerHTML = '✅ Credenciales Guardadas';
+                updateConnectionStatus('✅ Credenciales guardadas - dispositivo reiniciando', 'connected');
+
+            } catch (error) {
+                console.error('Save error:', error);
+                saveBtn.innerHTML = '❌ Error al Guardar';
+                setTimeout(() => {
+                    saveBtn.innerHTML = '💾 Guardar y Reiniciar Dispositivo';
+                    saveBtn.disabled = false;
+                }, 3000);
+            }
+        }
+
+        function showSuccessSection() {
+            successSection.classList.remove('hidden');
+            successSection.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function onDisconnected() {
+            console.log('Recovery device disconnected');
+            isConnected = false;
+            bleDevice = null;
+            
+            if (successSection.classList.contains('hidden')) {
+                // Only show reconnect option if we haven't reached success phase
+                updateConnectionStatus('📱 Dispositivo desconectado', 'disconnected');
+                connectBtn.style.display = 'block';
+                connectBtn.innerHTML = '🔗 Reconectar Dispositivo';
+                connectBtn.disabled = false;
+                
+                // Disable form
+                formSection.classList.remove('enabled');
+                ssidInput.disabled = true;
+                passwordInput.disabled = true;
+                saveBtn.disabled = true;
+            }
+        }
+    </script>
+</body>
+</html>
