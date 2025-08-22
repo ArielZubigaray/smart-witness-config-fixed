@@ -282,6 +282,28 @@
                     💾 Guardar y Reiniciar Dispositivo
                 </button>
 
+                <!-- OTA Button -->
+                <button id="ota-btn" class="btn btn-warning" disabled>
+                    🔄 OTA Update
+                </button>
+
+                <!-- OTA Instructions Section -->
+                <div id="ota-section" class="success-section hidden">
+                    <div class="success-info">
+                        🔄 <strong>¡Modo OTA Activado!</strong><br>
+                        📶 Red WiFi creada para actualización<br>
+                        ⏰ Recovery timeout cancelado<br><br>
+                        
+                        <strong>📋 Instrucciones:</strong><br>
+                        1️⃣ Conecta tu PC a la red: <strong id="ota-network"></strong><br>
+                        2️⃣ Password: <strong>12345678</strong><br>
+                        3️⃣ Ve a: <strong>http://192.168.4.1:8080/ota</strong><br>
+                        4️⃣ Selecciona archivo .bin y sube<br><br>
+                        
+                        <small>💡 El dispositivo se reiniciará automáticamente después de la actualización</small>
+                    </div>
+                </div>
+
                 <!-- Success Section -->
                 <div id="success-section" class="success-section hidden">
                     <div class="success-info">
@@ -321,11 +343,17 @@
         const ssidInput = document.getElementById('ssid');
         const passwordInput = document.getElementById('password');
         const saveBtn = document.getElementById('save-btn');
+        const otaBtn = document.getElementById('ota-btn');
+        const otaSection = document.getElementById('ota-section');
         const successSection = document.getElementById('success-section');
+
+        // Recovery timeout variables
+        let recoveryTimeoutCancelled = false;
 
         // Event Listeners
         connectBtn.addEventListener('click', connectToDevice);
         saveBtn.addEventListener('click', saveWiFiCredentials);
+        otaBtn.addEventListener('click', startOTA);
         ssidInput.addEventListener('input', validateForm);
         passwordInput.addEventListener('input', validateForm);
 
@@ -421,6 +449,9 @@
             
             saveBtn.disabled = !(hasSSID && hasPassword);
             
+            // OTA button is enabled when device is connected (doesn't need form data)
+            otaBtn.disabled = !isConnected || recoveryTimeoutCancelled;
+            
             if (hasSSID && hasPassword) {
                 saveBtn.classList.add('success-animation');
             }
@@ -460,6 +491,60 @@
                 setTimeout(() => {
                     saveBtn.innerHTML = '💾 Guardar y Reiniciar Dispositivo';
                     saveBtn.disabled = false;
+                }, 3000);
+            }
+        }
+
+        async function startOTA() {
+            if (!isConnected || !configCharacteristic) {
+                alert('Dispositivo no conectado');
+                return;
+            }
+
+            try {
+                otaBtn.innerHTML = '<span class="loading-spinner"></span>Activando OTA...';
+                otaBtn.disabled = true;
+
+                console.log('Starting OTA mode from recovery...');
+                updateConnectionStatus('🔄 Activando modo OTA...', 'connecting');
+
+                // Cancel recovery timeout
+                recoveryTimeoutCancelled = true;
+                console.log('Recovery timeout cancelled for OTA mode');
+
+                // Send OTA command via JSON to recovery device
+                const otaCommand = {
+                    action: "start_ota"
+                };
+
+                const commandJson = JSON.stringify(otaCommand);
+                const encoder = new TextEncoder();
+                const data = encoder.encode(commandJson);
+
+                await configCharacteristic.writeValue(data);
+                console.log('OTA command sent to ESP32 via recovery interface');
+                
+                // Show OTA instructions
+                const otaNetwork = 'ESP32_OTA_' + bleDevice.name.split('_')[2]; // Extract MAC from RECOVERY name
+                document.getElementById('ota-network').textContent = otaNetwork;
+                
+                otaBtn.innerHTML = '✅ Modo OTA Activo';
+                updateConnectionStatus('✅ Modo OTA activado - recovery timeout cancelado', 'connected');
+                
+                otaSection.classList.remove('hidden');
+                otaSection.scrollIntoView({ behavior: 'smooth' });
+
+                // Disable save button since we're in OTA mode
+                saveBtn.disabled = true;
+
+            } catch (error) {
+                console.error('OTA error:', error);
+                otaBtn.innerHTML = '❌ Error OTA';
+                recoveryTimeoutCancelled = false; // Restore timeout if OTA failed
+                setTimeout(() => {
+                    otaBtn.innerHTML = '🔄 OTA Update';
+                    otaBtn.disabled = false;
+                    validateForm(); // Re-enable save button
                 }, 3000);
             }
         }
