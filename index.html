@@ -339,6 +339,28 @@
                     ⚙️ Configurar Dispositivo
                 </button>
 
+                <!-- OTA Button -->
+                <button id="ota-btn" class="btn btn-primary" disabled>
+                    🔄 OTA Update
+                </button>
+
+                <!-- OTA Instructions Section -->
+                <div id="ota-section" class="telegram-section hidden">
+                    <div class="telegram-info">
+                        🔄 <strong>¡Modo OTA Activado!</strong><br>
+                        📶 Red WiFi creada para actualización<br>
+                        🔗 Sigue estos pasos:<br><br>
+                        
+                        <strong>📋 Instrucciones:</strong><br>
+                        1️⃣ Conecta tu PC a la red: <strong id="ota-network"></strong><br>
+                        2️⃣ Password: <strong>12345678</strong><br>
+                        3️⃣ Ve a: <strong>http://192.168.4.1:8080/ota</strong><br>
+                        4️⃣ Selecciona archivo .bin y sube<br><br>
+                        
+                        <small>💡 El dispositivo se reiniciará automáticamente después de la actualización</small>
+                    </div>
+                </div>
+
                 <!-- Success Section (replaces telegram section) -->
                 <div id="success-section" class="telegram-section hidden">
                     <div class="telegram-info">
@@ -393,11 +415,14 @@
         const pinValue = document.getElementById('pin-value');
         const pinInstruction = document.getElementById('pin-instruction');
         const configureBtn = document.getElementById('configure-btn');
+        const otaBtn = document.getElementById('ota-btn');
+        const otaSection = document.getElementById('ota-section');
         const successSection = document.getElementById('success-section');
 
         // Event Listeners
         connectBtn.addEventListener('click', connectToDevice);
         configureBtn.addEventListener('click', configureDevice);
+        otaBtn.addEventListener('click', startOTA);
         ssidInput.addEventListener('input', validateForm);
         passwordInput.addEventListener('input', validateForm);
 
@@ -589,6 +614,9 @@
             
             configureBtn.disabled = !(hasSSID && hasPassword && hasPin);
             
+            // OTA button is enabled when device is connected (doesn't need form data)
+            otaBtn.disabled = !isConnected;
+            
             if (hasSSID && hasPassword && hasPin) {
                 configureBtn.classList.add('success-animation');
             }
@@ -659,6 +687,44 @@
         function showTelegramSection() {
             telegramSection.classList.remove('hidden');
             telegramSection.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        async function startOTA() {
+            if (!isConnected || !commandCharacteristic) {
+                alert('Dispositivo no conectado');
+                return;
+            }
+
+            try {
+                otaBtn.innerHTML = '<span class="loading-spinner"></span>Activando OTA...';
+                otaBtn.disabled = true;
+
+                console.log('Starting OTA mode...');
+                updateConnectionStatus('🔄 Activando modo OTA...', 'connecting');
+
+                // Send OTA command to ESP32
+                const encoder = new TextEncoder();
+                await commandCharacteristic.writeValue(encoder.encode('start_ota'));
+                console.log('OTA command sent to ESP32');
+                
+                // Show OTA instructions
+                const otaNetwork = 'ESP32_OTA_' + bleDevice.name.split('_')[1]; // Extract MAC part
+                document.getElementById('ota-network').textContent = otaNetwork;
+                
+                otaBtn.innerHTML = '✅ Modo OTA Activo';
+                updateConnectionStatus('✅ Modo OTA activado - sigue las instrucciones', 'connected');
+                
+                otaSection.classList.remove('hidden');
+                otaSection.scrollIntoView({ behavior: 'smooth' });
+
+            } catch (error) {
+                console.error('OTA error:', error);
+                otaBtn.innerHTML = '❌ Error OTA';
+                setTimeout(() => {
+                    otaBtn.innerHTML = '🔄 OTA Update';
+                    otaBtn.disabled = false;
+                }, 3000);
+            }
         }
 
         function showRestartMessage() {
